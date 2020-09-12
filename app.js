@@ -16,20 +16,19 @@ app.use(express.urlencoded({extended: false}))
 app.use('/api/auth', require('./routes/auth.routes'))
 app.use('/api/room', require('./routes/room.routes'))
 app.use('/api/message', require('./routes/message.routes'))
+app.use('/api/friends', require('./routes/friends.routes'))
 
 const botName = 'LightChat Bot'
 
 io.on('connection', (socket) => {
     console.log('New WS Connection...')
-    socket.on('joinRoom', ({username, room}) => {
-        const user = userJoin(socket.id, username, room)
+    socket.on('joinRoom', ({username, room, roomId}) => {
+        const user = userJoin(socket.id, username, room, roomId)
 
         socket.join(user.room)
 
-        socket.emit('message', formatMessage(botName, 'Welcome to LightChat'))
-
         socket.broadcast.to(user.room).emit(
-            'message', formatMessage(botName, `${user.username} has joined the chat`))
+            'message', formatMessage(botName, `${user.username} has joined the chat`, user.roomId))
 
         io.to(user.room).emit('roomUsers', {
             room: user.room,
@@ -43,13 +42,13 @@ io.on('connection', (socket) => {
 
     socket.on('chatMessage', (message) => {
         const user = getCurrentUser(socket.id)
-        io.to(user.room).emit('message', formatMessage(user.username, message))
+        io.to(user.room).emit('message', formatMessage(user.username, message, user.roomId))
     })
     socket.on('disconnect', () => {
         const user = userLeave(socket.id)
 
         if (user) {
-            io.to(user.room).emit('message', formatMessage(botName, `${user.username} has left the chat`))
+            io.to(user.room).emit('message', formatMessage(botName, `${user.username} has left the chat`, user.roomId))
             io.to(user.room).emit('roomUsers', {
                 room: user.room,
                 users: getRoomUsers(user.room)

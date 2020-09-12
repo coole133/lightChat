@@ -7,6 +7,7 @@ router.post(
     '/',
     async (req, res) => {
         try {
+
             const {text, room, user, time} = req.body
 
             const newMessage = new Message({
@@ -28,6 +29,18 @@ router.get(
         try {
             const messages = await Message.find({room: req.params.id})
             console.log(messages)
+            res.status(200).json(messages)
+        } catch (e) {
+            res.status(500).json({message: 'An error occurred'})
+        }
+    })
+
+// api/message/
+router.delete(
+    '/:id',
+    async (req, res) => {
+        try {
+            const messages = await Message.deleteMany({room: req.params.id})
             res.status(200).json(messages)
         } catch (e) {
             res.status(500).json({message: 'An error occurred'})
