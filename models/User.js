@@ -6,4 +6,6 @@ const schema = new Schema({
     password: {type: String, required: true}
 })
 
+schema.index({'$**': 'text'});
+
 module.exports = model('User', schema)
